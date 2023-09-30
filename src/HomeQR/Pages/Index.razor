@@ -1,0 +1,50 @@
+﻿@page "/"
+@using HomeQR.Data
+@inject QrCodesService QrCodesService
+
+<PageTitle>QR Codes</PageTitle>
+
+<h1>QR Codes</h1>
+
+<p>All registered QR codes</p>
+
+@if (qrCodes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Href</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var qrCode in qrCodes)
+            {
+                <tr>
+                    <td>@qrCode.Name</td>
+                    <td><img src="@GetQrCodeImage(qrCode.Code)" alt="QR Code" /></td>
+                    <td>@qrCode.Href</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private QrCode[]? qrCodes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        qrCodes = await QrCodesService.GetQrCodes();
+    }
+
+    private string GetQrCodeImage(byte[] code)
+    {
+        return $"data:image/png;base64,{Convert.ToBase64String(code)}";
+    }
+}
