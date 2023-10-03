@@ -1,0 +1,94 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using HomeQR.Data
+
+@inject QrCodesService QrCodesService
+
+<div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Add new QR Code
+                </h5>
+                <button type="button" class="btn btn-close" data-dismiss="modal" aria-label="Close" @onclick="() => Close()" />
+            </div>
+            <EditForm Model="@Model" OnValidSubmit="@Submit">
+                <DataAnnotationsValidator />
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label for="name">Name</label>
+                        <InputText @bind-Value="Model.Name" class="form-control" id="name" />
+                        <ValidationMessage For="@(() => Model.Name)" />
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="name">Href</label>
+                        <InputText @bind-Value="Model.Href" class="form-control" id="href" />
+                        <ValidationMessage For="@(() => Model.Href)" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="() => Close()">Close</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+
+@code
+{
+    [Parameter]
+    public EventCallback OnSubmit { get; set; }
+
+    public Guid Guid = Guid.NewGuid();
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    public bool ShowBackdrop = false;
+
+    public QrCodeDTO Model { get; } = new();
+
+    protected override void OnInitialized()
+    {
+    }
+
+    private async Task Submit()
+    {
+        var qrCode = await QrCodesService.Create(Model.Name, Model.Href);
+        await OnSubmit.InvokeAsync();
+        Close();
+    }
+
+    public void Open()
+    {
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    public class QrCodeDTO
+    {
+        [Required]
+        [MaxLength(1024)]
+        public string Name { get; set; }
+
+        [Required]
+        [MaxLength(1024)]
+        public string Href { get; set; }
+    }
+}

@@ -1,30 +1,30 @@
-﻿using QRCoder;
+﻿using HomeQR.Data.Targets;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Identity;
+using QRCoder;
 
 namespace HomeQR.Data;
 
 public class QrCode
 {
-    public int Id { get; }
-    public string Name { get; }
+    public int Id { get; init; }
 
-    public byte[] Code { get; }
+    public required Guid Uuid { get; init; }
 
-    public string Href { get; }
+    public required string Name { get; init; }
 
-    public QrCode(int id, string name, string href)
+    public required string Href { get; init; }
+
+    public required IdentityUser IdentityUser { get; init; }
+
+    public ICollection<QrCodeTarget> Targets { get; set; } = new List<QrCodeTarget>();
+
+    public byte[] GetQrCode(NavigationManager navigationManager)
     {
-        Id = id;
-        Name = name;
-        Code = GenerateQrCode(href);
-        Href = href;
-    }
-
-    private static byte[] GenerateQrCode(string data)
-    {
+        var uri = new Uri(navigationManager.BaseUri + "qrcodes/" + Uuid);
         var qrGenerator = new QRCodeGenerator();
-        var qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.Q);
+        var qrCodeData = qrGenerator.CreateQrCode(uri.ToString(), QRCodeGenerator.ECCLevel.Q);
         var qrCode = new PngByteQRCode(qrCodeData);
         return qrCode.GetGraphic(4, new byte[] { 0, 0, 0, 255 }, new byte[] { 255, 255, 255, 0 }, false);
     }
-
 }
